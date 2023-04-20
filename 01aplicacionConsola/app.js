@@ -1,5 +1,5 @@
 import colors from 'colors'
-import { inquirerMenu, pausaAction } from './helpers/inquirer.js';
+import { inquirerMenu, leerInput, pausaAction } from './helpers/inquirer.js';
 import { Tarea } from './models/tarea.js';
 import { Tareas } from './models/tareas.js';
 
@@ -8,18 +8,23 @@ console.clear();
 const main =async()=>{
 
     let opt = ""
+    const tareas = new Tareas
+
   do {
     
+     opt = await inquirerMenu();
 
-    //opt = await inquirerMenu();
+     switch(opt){
+      case '1':
+        const desc = await leerInput('Descripción: ')
+        tareas.crearTarea(desc)
+
+      break;
+      case '2':
+        console.log( tareas._listado) // aunque en principio _listado es privada lo pongo así de momento (fast way)
+      break;
+     }
     
-    const tareas= new Tareas()
-
-    const tarea = new Tarea('Tarea a realizar')
-
-    tareas._listado[tarea.id] = tarea; // computo el id y le paso la tarea
-
-    console.log(tareas)
     
     await pausaAction()
 

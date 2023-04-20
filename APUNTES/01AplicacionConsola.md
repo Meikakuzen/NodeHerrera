@@ -508,3 +508,116 @@ Tareas {
 --------
 
 ## Crear y Listar tareas
+
+- Quiero que seleccionando la opción 1 pueda crear una tarea y la 2 listarlas todas
+- Creo una nueva instancia de Tareas
+
+~~~js
+import colors from 'colors'
+import { inquirerMenu, pausaAction } from './helpers/inquirer.js';
+import { Tarea } from './models/tarea.js';
+import { Tareas } from './models/tareas.js';
+
+console.clear();
+
+const main =async()=>{
+
+    let opt = ""
+    const tareas = new tareas
+
+  do {
+    
+     opt = await inquirerMenu();
+    
+    
+    await pausaAction()
+
+  } while (opt !== '0') 
+    
+}
+
+main();
+~~~
+
+- tareas.js
+
+~~~js
+import { Tarea } from "./tarea.js"
+
+export class Tareas{
+    
+    _listado = {} 
+                                              
+    constructor(){
+        this._listado = {}
+    }
+
+   crearTarea(desc=""){
+
+    const tarea = new Tarea(desc)
+    
+    //_listado es un objeto, no un arreglo. Computo el uid como propiedad y le paso la tarea
+
+    this._listado[tarea.id] = tarea
+
+   }
+                                            
+}
+~~~
+
+- Para manejar las opciones usaré un switch en el do del dowhile del main
+- Para que el usuario introduzca datos en el casod e crear una tarea hay que usar el inquire nuevamente
+  - Como voy a tener que reutilizar esta función la creo aparte en helpers/inquirer
+- inquirer.js
+
+~~~js
+export const leerInput = async (message) =>{
+    const question = [
+        {
+            type: 'input',
+            name: 'desc',
+            message: message,
+            validate(value){       //validate es una función que tiene el value que se acaba de escribir
+                if(value.length === 0){   //hago la validación  de que el value no esté vacio
+                    return 'Por favor, ingrese un valor'  
+                }
+                return true
+            }
+
+        }
+    ]
+
+    const {desc} = await inquirer.prompt(question)
+    return desc
+}
+~~~
+
+- dentro del main de app.js
+
+~~~js
+do {
+    
+     opt = await inquirerMenu();
+
+     switch(opt){
+      case '1':
+        const desc = await leerInput('Descripción: ') //Aparece Descripción: para que después introduzca mi tarea
+        console.log(desc) //me devuelve lo que he escrito en la descripción
+
+        tareas.crearTarea(desc) //creo la tarea, la guarda en Tareas
+      break;
+      case '2':
+        console.log( tareas._listado) // aunque en principio _listado es privada lo pongo así de momento (fast way)
+      break;
+     }
+    
+    
+    await pausaAction()
+
+  } while (opt !== '0') 
+~~~
+
+- Si detengo la aplicación pierdo las tareas porque las tengo en memoria
+----
+
+## Transformar un objeto a un arreglo, detalles estéticos

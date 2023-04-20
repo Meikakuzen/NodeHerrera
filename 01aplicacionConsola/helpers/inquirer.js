@@ -79,3 +79,23 @@ export const pausaAction = async()=>{
     await inquirer.prompt(question)
 
 }
+
+export const leerInput = async (message) =>{
+    const question = [
+        {
+            type: 'input',
+            name: 'desc',
+            message: message,
+            validate(value){       //validate es una función que tiene el value que se acaba de escribir
+                if(value.length === 0){   //hago la validación  de que el value no esté vacio
+                    return 'Por favor, ingrese un valor'  
+                }
+                return true
+            }
+
+        }
+    ]
+
+    const {desc} = await inquirer.prompt(question)
+    return desc
+}
