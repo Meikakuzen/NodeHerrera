@@ -1,0 +1,81 @@
+import inquirer from 'inquirer'
+import colors from 'colors'
+
+//Creo la constante preguntas (el arreglo de questions que me pide el inquirer) fuera del inquirerMenu
+const preguntas= [
+    {
+        type: 'list',
+        name: 'opcion',
+        message: 'Que desea hacer?',
+        choices: [
+            {
+                value: '1', //es importante pasar el número como string porque así se lee de consola
+                name: '1. Crear tarea'
+            },
+            {
+                value: '2',
+                name: '2. Listar tareas'
+            },
+            {
+                value: '3',
+                name: '3. Listar tareas completadas '
+            },
+            {
+                value: '4',
+                name: '4. Listar tareas pendientes'
+            },
+            {
+                value: '5',
+                name: '5. Completar tarea(s)'
+            },
+            {
+                value: '6',
+                name: '6. Borrar tarea(s)'
+            },
+            {
+                value: '0',
+                name: '0. Salir'
+            },
+        ]
+    }
+]; 
+
+
+export const inquirerMenu = async()=>{
+
+    console.clear()
+    console.log("================================".green)
+    console.log("     Seleccione una opción   ".green)
+    console.log("================================\n".green)
+
+    //como inquirer trabaja en base a promesas puedo usar el await
+    
+    //puedo desestructurar la opcion del resultado de la promesa
+    const {opcion}= await inquirer.prompt(preguntas)
+
+    return opcion
+}
+
+//siempre es un arreglo lo que va en el inquirer.prompt
+const question =[ 
+    {
+        type: 'input',
+        name: 'pausa',
+        message: `Pulsa ${'ENTER'.green} para continuar`
+    }
+]
+export const pausaAction = async()=>{
+
+    const question =[ 
+        {
+            type: 'input',
+            name: 'pausa',
+            message: `Pulsa ${'ENTER'.green} para continuar`
+        }
+    ]
+    
+    console.log('\n') //le añado un salto de linea para que no estñe tan pegado
+
+    await inquirer.prompt(question)
+
+}

@@ -9,6 +9,13 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/inquirer": "^9.0.3",
     "vite": "^4.2.0"
+  },
+  "dependencies": {
+    "@types/uuid": "^9.0.1",
+    "colors": "^1.4.0",
+    "inquirer": "^9.1.5",
+    "uuid": "^9.0.0"
   }
 }
