@@ -933,4 +933,153 @@ main();
 
 ## Listado para borrar
 
+- Creo el método borrarTarea de la clase Tarea en tareas.js
+
+~~~js
+    borrarTarea(id=""){
+        //quiero mostrarle a la persona salirse del menú de eliminación sin borrar nada
+        if(this._listado[id]){
+            delete this._listado[id]
+        }
+    }
+~~~
+
+- La lógica está en el archivo inquirer.js dónde tengo que crear unas preguntas para hacer el listado del prompt
+- creo el caso en el switch
+
+~~~js
+  case '6':
+    const id = await listadoTareasBorrar(tareas.listadoArr) 
+    //importante el await para esperar el resultado y que no reconstruya el menú y de error
+    tareas.borrarTarea(id)
+  break;
+~~~
+
+- inquirer.js
+
+~~~js
+export const listadoTareasBorrar =async (tareas) =>{
+
+    const choices = tareas.map((tarea, indice)=>{
+        
+        const idx = `${indice + 1 }`.green 
+        
+        //map lo que tiene es que todos los hijos van a tener lo que yo ponga en el return
+        return{
+            value: tarea.id,
+            name: `${idx} ${tarea.desc}`
+        }
+    })
+
+    const preguntas = [
+        {
+            type: 'list',
+            name: 'id', // esto es lo que voy a recibir
+            message: 'Borrar',
+            choices
+        }
+    ]
+
+    const {id} = await inquirer.prompt(preguntas) //puedo desestructurar el id  de la opción seleccionada
+
+    return id
+}
+~~~
+
+- De esta manera borro directamente pero quiero preguntar la confirmación
+-----
+
+## Confirmar y borrar tarea
+
+- Creo una nueva función en el inquirer.js para confirmar
+
+~~~js
+export const confirmar = async (message)=>{
+    const pregunta =[
+        {
+            type: 'confirm', //regresa un valor boolean
+            name: 'ok',
+            message: message
+        }
+    ]
+
+    const {ok} = await inquirer.prompt(pregunta)
+    return ok
+
+}
+~~~
+
+- en app.js
+
+~~~js
+      case '6':
+
+        const id = await listadoTareasBorrar(tareas.listadoArr) //importante el await para que espere al resultado!
+        const ok = await confirmar("Está seguro?")
+        if(ok){
+          tareas.borrarTarea(id)
+          console.log('Tarea borrada')
+        }
+        break;
+~~~
+
+- Puedo añadir la opción 0 para cancelar el menú de borrar con choices.unshift
+
+~~~js
+export const listadoTareasBorrar =async (tareas) =>{
+
+    const choices = tareas.map((tarea, indice)=>{
+        
+        const idx = `${indice + 1 }`.green 
+        
+        //map lo que tiene es que todos los hijos van a tener lo que yo ponga en el return
+        return{
+            value: tarea.id,
+            name: `${idx} ${tarea.desc}`
+        }
+    })
+
+    //unshift añade al principio del array
+    choices.unshift({
+        value: '0',
+        name: '0'.green + ' Cancelar'
+    })
+
+    const preguntas = [
+        {
+            type: 'list',
+            name: 'id',
+            message: 'Borrar',
+            choices
+        }
+    ]
+
+    const {id} = await inquirer.prompt(preguntas)
+
+    return id
+}
+~~~
+
+- app.js
+
+~~~js
+
+      case '6':
+
+        const id = await listadoTareasBorrar(tareas.listadoArr) //importante el await para que espere al resultado!
+        if(id !== '0'){
+          
+          const ok = await confirmar("Está seguro?")
+          
+          if(ok){
+            tareas.borrarTarea(id)
+            console.log('Tarea borrada')
+          }
+        }
+        break;
+~~~
+------
+
+## Completar tareas - Multiples selecciones
+
 - 

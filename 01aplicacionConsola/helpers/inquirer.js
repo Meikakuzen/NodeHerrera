@@ -92,3 +92,50 @@ export const leerInput = async (message) =>{
     const {desc} = await inquirer.prompt(question)
     return desc
 }
+
+export const listadoTareasBorrar =async (tareas) =>{
+
+    const choices = tareas.map((tarea, indice)=>{
+        
+        const idx = `${indice + 1 }`.green 
+        
+        //map lo que tiene es que todos los hijos van a tener lo que yo ponga en el return
+        return{
+            value: tarea.id,
+            name: `${idx} ${tarea.desc}`
+        }
+    })
+
+    //unshift añade al principio del array
+    choices.unshift({
+        value: '0',
+        name: '0'.green + ' Cancelar'
+    })
+
+    const preguntas = [
+        {
+            type: 'list',
+            name: 'id',
+            message: 'Borrar',
+            choices
+        }
+    ]
+
+    const {id} = await inquirer.prompt(preguntas)
+
+    return id
+}
+
+export const confirmar = async (message)=>{
+    const pregunta =[
+        {
+            type: 'confirm', //regresa un valor boolean
+            name: 'ok',
+            message: message
+        }
+    ]
+
+    const {ok} = await inquirer.prompt(pregunta)
+    return ok
+
+}

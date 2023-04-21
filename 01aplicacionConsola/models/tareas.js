@@ -77,5 +77,12 @@ export class Tareas{
                 }
             }
          }) 
-    }                                           
+    }  
+    
+    borrarTarea(id=""){
+        //quiero mostrarle a la persona salirse del menú de eliminación sin borrar nada
+        if(this._listado[id]){
+            delete this._listado[id]
+        }
+    }
 }
