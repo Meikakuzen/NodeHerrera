@@ -10,31 +10,30 @@ const preguntas= [
         choices: [
             {
                 value: '1', //es importante pasar el número como string porque así se lee de consola
-                name: '1. Crear tarea'
+                name: `${'1'.green} Crear tarea`
             },
             {
                 value: '2',
-                name: '2. Listar tareas'
+                name: `${'2'.green} Listar tareas`
             },
             {
                 value: '3',
-                name: '3. Listar tareas completadas '
+                name: `${'3'.green} Listar tareas completadas`
             },
             {
                 value: '4',
-                name: '4. Listar tareas pendientes'
+                name: `${'4'.green} Listar tareas pendientes`
             },
             {
                 value: '5',
-                name: '5. Completar tarea(s)'
+                name: `${'5'.green} Completar tareas`
             },
             {
                 value: '6',
-                name: '6. Borrar tarea(s)'
-            },
+                name: `${'6'.green} Borrar tareas`             },
             {
                 value: '0',
-                name: '0. Salir'
+                name: `${'0'.green} Salir`
             },
         ]
     }
@@ -45,7 +44,7 @@ export const inquirerMenu = async()=>{
 
     console.clear()
     console.log("================================".green)
-    console.log("     Seleccione una opción   ".green)
+    console.log("     Seleccione una opción   ".white)
     console.log("================================\n".green)
 
     //como inquirer trabaja en base a promesas puedo usar el await
@@ -56,16 +55,10 @@ export const inquirerMenu = async()=>{
     return opcion
 }
 
-//siempre es un arreglo lo que va en el inquirer.prompt
-const question =[ 
-    {
-        type: 'input',
-        name: 'pausa',
-        message: `Pulsa ${'ENTER'.green} para continuar`
-    }
-]
-export const pausaAction = async()=>{
 
+export const pausaAction = async()=>{
+    
+//siempre es un arreglo lo que va en el inquirer.prompt
     const question =[ 
         {
             type: 'input',

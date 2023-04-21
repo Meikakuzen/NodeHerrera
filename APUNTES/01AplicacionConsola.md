@@ -621,3 +621,316 @@ do {
 ----
 
 ## Transformar un objeto a un arreglo, detalles estéticos
+
+- Creo un getter en Tareas
+- Me interesa trabajar en base al id
+- tareas.js
+
+~~~js
+    //getter
+    get listadoArr (){
+       const listado = []
+       
+       //Object.keys me devuelve las llaves ( la palabra de la izquierda )
+       //Todo esto es síncrono, no hace falta el await
+
+       Object.keys(this._listado).forEach(key=>{
+        const tarea = this._listado[key]
+        
+        listado.push(tarea)
+       })
+
+       //se podría hacer así : const listado= [...Object.values(this._listado)]
+
+       return listado
+    }
+~~~
+
+- Lo llamo desde el main.js
+- main.js
+
+~~~js
+
+const main =async()=>{
+
+    let opt = ""
+    const tareas = new Tareas
+
+  do {
+    
+     opt = await inquirerMenu();
+
+     switch(opt){
+      case '1':
+        const desc = await leerInput('Descripción: ')
+        tareas.crearTarea(desc)
+
+      break;
+      case '2':
+        console.log( tareas.listadoArr ) //llamo al getter
+      break;
+     }
+    
+    
+    await pausaAction()
+
+  } while (opt !== '0') 
+    
+}
+main()
+~~~
+
+- En lugar de hacerlo así se puede hacer con una sola linea
+- tareas.js
+
+~~~js
+const listado= [...Object.values(this._listado)]
+return listado
+~~~
+
+## Guardar tareas en un archivo de texto
+
+- Para hacer persistente la info, en lugar de usar una DB se usará un archivo de texto
+- Creo en /helpers/guardarArchivo.js
+- Como se que la función guardarDB va a estar en app.js, le indico la ruta a la carpeta db ( que he creado ) con el nombre del archivo
+- guardarArchivo.js
+
+~~~js
+import fs from 'fs'
+
+export const guardarDB = ( data )=>{
+    
+    //tiene que existir la carpeta para que funcione
+    const archivo = './db/data.txt'
+    
+    fs.writeFileSync(archivo, data)
+}
+~~~
+
+- Dónde coloco la función?
+- Puedo colocarlo **después del switch** ( en el main ) para que siempre grabe, pese a que hay opciones que no lo necesita
+    - Podría colocarlo en casos específicos del switch
+~~~js
+ guardarDB(tareas.listadoArr) //lo guardo como un arreglo
+~~~
+
+- Así **DA ERROR** porque hay que parsear a string el resultado. Salta este error
+
+> TypeError ERR_INVALID_ARG_TYPE: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+
+- Lo parseo con JSON.stringify
+
+~~~js
+export const guardarDB = ( data )=>{
+    
+    //tiene que existir la carpeta para que funcione
+    //creo un json que se ve mucho mejor
+    const archivo = './db/data.json'
+    
+    fs.writeFileSync(archivo, JSON.stringify(data))
+}
+~~~
+
+- Ya lo tengo en el archivo json en la carpeta db!
+- Todavía no es persistente, ya que si cierro y vuelvo a subir el server, la instancia de Tareas se va a crear de nuevo, etc
+------
+
+## Leer de la DB
+
+- Creo la función leerDB en helpers/guardarArchivo.js 
+- archivo lo defino fuera de la función para así tener alcance desde la otra función
+
+~~~js
+import fs from 'fs'
+
+const archivo = './db/data.json'
+
+export const guardarDB = ( data )=>{
+    
+    //tiene que existir la carpeta para que funcione
+    
+    fs.writeFileSync(archivo, JSON.stringify(data))
+}
+
+export const leerDB =()=>{
+    if(!fs.existsSync(archivo)){
+        return null  // si no existe regreso null
+    }
+
+    const info = fs.readFileSync(archivo,{encoding: 'utf-8'})//esto daría error si el archivo no existiera por eso la verificación con el if de antes
+        //tengo que pasarle el encoding para que no me regrese los bytes
+
+    //como me devuelve un string, tengo que parsear la data
+    const data = JSON.parse(info)
+    
+    return data
+
+}
+~~~
+- La data que ya había en el json no son instancias de Tarea
+- En data tengo un arreglo de tareas
+- En base al arreglo tengo que volver a construir como esta funcionando la aplicación, el objeto de _listado con la llave Uuid apuntando a la tarea
+- main.js
+
+~~~js
+const main =async()=>{
+
+    let opt = ""
+    const tareas = new Tareas
+    
+    const tareasDB = leerDB()
+
+    if(tareasDB){
+
+    }
+~~~
+------
+
+## Cargar Tareas
+
+- Creo en tareas.js dentro de la clase Tareas el método cargarTareasFromArray
+- Lo llamo en el main
+
+~~~js
+const main =async()=>{
+
+    let opt = ""
+    const tareas = new Tareas
+
+    const tareasDB = leerDB()
+
+    if(tareasDB){  //cargar tareas
+      tareas.cargarTareasFromArray(tareasDB)
+    }
+~~~
+
+- El método de tareas.js
+
+~~~js
+    cargarTareasFromArray(data=[]){
+        data.forEach(tarea=>{
+            this._listado[tarea.id] = tarea;
+        })
+    }
+~~~
+
+- En este punto la app da *ERROR* si no hay un objeto en el JSON
+------
+
+## Listar tareas
+
+- Creo un nuevo método en tareas.js llamado listadoCompleto
+- uso el getter para obtener el array y trabajar con él
+- método de tareas.js
+
+~~~js
+listadoCompleto(){
+        //el segundo argumento del forEach es el índice
+        this.listadoArr.forEach((tarea, indice)=>{
+            //const idx = indice +1 //para que empiece por 1 y no por cero. Uso un template string para colorearlo en verde
+
+            const idx = `${indice+1}`.green
+            const {desc, completadoEn} = tarea //uso desestructuración para extraer desc y completadoEn, 
+            //que me sirve para decir si está completado o no
+            
+            const estado = completadoEn !== null? 'Completado'.green : 'Pendiente'.red
+            console.log(`${idx}- ${desc} :: ${estado}`)
+
+        })
+     }
+~~~
+
+- Evidentemente coloco tareas.listadoCompleto() en el caso 2 del switch que es listar tareas
+
+~~~js
+import colors from 'colors'
+import { inquirerMenu, leerInput, pausaAction } from './helpers/inquirer.js';
+import { Tareas } from './models/tareas.js';
+import { guardarDB, leerDB } from './helpers/guardarArchivo.js';
+
+console.clear();
+
+const main =async()=>{
+
+    let opt = ""
+    const tareas = new Tareas
+
+    //guardo lo que leo en la DB
+    const tareasDB = leerDB()
+
+    if(tareasDB){  // si hay tareas lo formateo con cargarTareas al objeto ._listado
+      tareas.cargarTareasFromArray(tareasDB)
+    }
+
+  do {
+    
+     opt = await inquirerMenu();
+
+     switch(opt){
+      case '1':
+        const desc = await leerInput('Descripción: ')
+        tareas.crearTarea(desc)
+        guardarDB(tareas.listadoArr) //lo guardo como un arreglo
+
+      break;
+      case '2':
+        tareas.listadoCompleto()
+      break;
+     }
+
+    
+    
+    await pausaAction()
+
+  } while (opt !== '0') 
+    
+}
+
+main();
+~~~
+----
+
+## Tareas completadas y pendientes
+
+- Creo el método listarPendientesCompletadas(completadas= true)
+- Si le paso true me muestra las completadas, si le paso false me muestra las pendientes
+- Creo una variable indice fuera del forEach
+- La paso a string para poder colorearla. Si sumo un numero + un string resulta un string. Le sumo el punto
+- Si la tarea no esta completada es el mismo código pero negando con un !
+
+~~~js
+//metodo en Tareas (tareas,js)
+
+     listarPendientesCompletadas(completadas = true){
+        let indice = 0;
+        this.listadoArr.forEach((tarea)=>{
+
+            const {desc, completadoEn} = tarea 
+            const estado = completadoEn !== null ? "Completada".green : "Pendiente".red  
+
+            if(completadas){
+                if(completadoEn){
+                    indice +=1
+                    //console.log(`${indice.toString().green}- ${desc} :: ${estado}`)        
+                    console.log(`${(indice+ '.').green}- ${desc} :: ${estado}`)        
+                }
+                
+            }else{
+                if(!completadas){
+                    if(!completadoEn){
+                        indice +=1
+                        console.log(`${(indice+ '.').green}- ${desc} :: ${estado}`)        
+                    }
+                }
+            }
+         }) 
+    }                                           
+}
+~~~
+
+- Evidentemente llamo al método en el case 3 y 4 del switch, en el 4 le paso false a la función tareas.listarPendientesCompletadas(false)
+------
+
+## Listado para borrar
+
+- 
