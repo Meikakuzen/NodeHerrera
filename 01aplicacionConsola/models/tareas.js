@@ -1,14 +1,15 @@
 import { Tarea } from "./tarea.js"
-import colors from 'colors'
+
 
 export class Tareas{
     
-    _listado = {}
+    _listado = {}  //lo voy a trabajar como un objeto, aunque con el getter lo transformo a arreglo
     
-    get listadoArr (){
+    get listadoArr (){  //usaré el getter con this.listadoArr como si fuera una propiedad de la clase
        const listado = []
        
        //Object.keys me devuelve las llaves ( la palabra de la izquierda )
+       //esta tarea es síncrona
        Object.keys(this._listado).forEach(key=>{
         const tarea = this._listado[key]
         
@@ -22,7 +23,7 @@ export class Tareas{
         this._listado = {}
     }
 
-    cargarTareasFromArray(data=[]){
+    cargarTareasFromArray(data=[]){ //le pasaré el resultado de leerDB()
         data.forEach(tarea=>{
             this._listado[tarea.id] = tarea;
         })
@@ -32,7 +33,7 @@ export class Tareas{
 
     const tarea = new Tarea(desc)
     
-    //_listado es un objeto, no un arreglo. Computo el uid como propiedad y le paso la tarea
+    //_listado es un objeto, no un arreglo. Computo el uid como propiedad y le paso la tarea para darle formato al objeto
 
     this._listado[tarea.id] = tarea
      }
@@ -80,7 +81,7 @@ export class Tareas{
     }  
     
     borrarTarea(id=""){
-        //quiero mostrarle a la persona salirse del menú de eliminación sin borrar nada
+        //aqui creo la funcion de borrar, pero quiero mostrarle a la persona salirse del menú de eliminación sin borrar nada
         if(this._listado[id]){
             delete this._listado[id]
         }

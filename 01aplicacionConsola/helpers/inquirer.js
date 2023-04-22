@@ -89,15 +89,15 @@ export const leerInput = async (message) =>{
         }
     ]
 
-    const {desc} = await inquirer.prompt(question)
+    const {desc} = await inquirer.prompt(question) //extraigo el valor con el nombre que le he puesto a la propiedad name de question
     return desc
 }
 
 export const listadoTareasBorrar =async (tareas) =>{
 
-    const choices = tareas.map((tarea, indice)=>{
+    const choices = tareas.map((tarea, indice)=>{ //el índice siempre está disponible cómo segundo argumento
         
-        const idx = `${indice + 1 }`.green 
+        const idx = `${indice + 1 }`.green // le sumo 1 y lo coloreo 
         
         //map lo que tiene es que todos los hijos van a tener lo que yo ponga en el return
         return{
@@ -115,13 +115,13 @@ export const listadoTareasBorrar =async (tareas) =>{
     const preguntas = [
         {
             type: 'list',
-            name: 'id',
+            name: 'id', //así lo nombraré en la desestructuración al extraer el resultado del prompt
             message: 'Borrar',
             choices
         }
     ]
 
-    const {id} = await inquirer.prompt(preguntas)
+    const {id} = await inquirer.prompt(preguntas) // extraigo el resultado del prompt como lo he nombrado en name
 
     return id
 }
@@ -140,14 +140,14 @@ export const confirmar = async (message)=>{
 
 }
 
-export const mostrarListadoChecklist =async (tareas) =>{
+export const mostrarListadoChecklist =async (tareas) =>{  //para completar tareas
 
     const choices = tareas.map((tarea, indice)=>{
         
         const idx = `${indice + 1 }`.green 
         
         
-        return{
+        return{     //esto será lo que muestre en el choices de preguntas que va en el prompt
             value: tarea.id,
             name: `${idx} ${tarea.desc}`,
             checked: (tarea.completadoEn ) ? true : false
@@ -156,14 +156,14 @@ export const mostrarListadoChecklist =async (tareas) =>{
 
     const preguntas = [
         {
-            type: 'checkbox',
+            type: 'checkbox', //otro tipo que me permite seleccionar con el space los elementos de una lista 
             name: 'ids',
-            message: 'Selecciones',
-            choices
+            message: 'Selecciones', //mostrará esto en pantalla junto a la selección
+            choices  //{value:"", name:"", checked:""}
         }
     ]
 
-    const {ids} = await inquirer.prompt(preguntas)
+    const {ids} = await inquirer.prompt(preguntas) //extraigo el resultado con la propiedad name de preguntas
 
     return ids
  }

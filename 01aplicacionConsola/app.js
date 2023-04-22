@@ -39,7 +39,7 @@ const main =async()=>{
         tareas.listarPendientesCompletadas(false)
         break;
 
-      case '5':
+      case '5':  //completar tareas
         const ids = await mostrarListadoChecklist(tareas.listadoArr)
         tareas.toggleCompletadas(ids)
         break;
@@ -59,7 +59,7 @@ const main =async()=>{
         break;
      }
 
-    guardarDB(tareas.listadoArr)
+    guardarDB(tareas.listadoArr) //lo guardo como un arreglo
     
     await pausaAction()
 

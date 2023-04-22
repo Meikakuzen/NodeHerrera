@@ -12,7 +12,7 @@ export class Tarea{
     //lo único que voy a pedir es la descripción de la tarea
     constructor(desc){
         this.desc = desc;
-        this.id = v4()
+        this.id = v4()  //generador de uuid
         this.completadoEn = null //esto es redundante pero así queda más claro
     }
 

@@ -2,6 +2,8 @@ import colors from 'colors'
 import readline from 'readline'
 
 //esto va a terminar siendo una promesa
+// No voy a usar esta función usando el inquirer
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 export const mostrarMenu = ()=>{
 
 
@@ -33,12 +35,14 @@ export const mostrarMenu = ()=>{
 
     })
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //creo una función de pause
    export const pause = ()=>{
 
     return new Promise(resolve=>{
-        const rl = readline.createInterface({
+        
+        const rl = readline.createInterface({ //Necesito leer el ENTER del usuario ( que en este caso será cualquier tecla )
             input: process.stdin,
             output: process.stdout
         })
