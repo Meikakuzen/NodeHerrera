@@ -32,7 +32,7 @@ const main =async()=>{
       break;
       
       case'3':
-      console.log(tareas.listarPendientesCompletadas())
+      tareas.listarPendientesCompletadas()
       break;
 
       case '4':
