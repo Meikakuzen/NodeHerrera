@@ -59,22 +59,22 @@ export class Tareas{
         this.listadoArr.forEach((tarea)=>{
 
             const {desc, completadoEn} = tarea 
-            const estado = completadoEn !== null ? "Completada".green : "Pendiente".red  
+            const estado = (completadoEn !== null) ? "Completada".green : "Pendiente".red  
 
             if(completadas){
                 if(completadoEn){
                     indice +=1
                     //console.log(`${indice.toString().green}- ${desc} :: ${estado}`)        
-                    console.log(`${(indice+ '.').green}- ${desc} :: ${estado}`)        
+                    console.log(`${(indice+ '.').green}- ${desc} :: ${completadoEn.green}`)    
                 }
                 
             }else{
-                if(!completadas){
+            
                     if(!completadoEn){
                         indice +=1
                         console.log(`${(indice+ '.').green}- ${desc} :: ${estado}`)        
                     }
-                }
+                
             }
          }) 
     }  
@@ -84,5 +84,23 @@ export class Tareas{
         if(this._listado[id]){
             delete this._listado[id]
         }
+    }
+
+    toggleCompletadas(ids= []){
+        ids.forEach(id=>{
+            const tarea = this._listado[id] //al trabajar con un objeto puedo ir directamente a la propiedad que me interesa
+            if(!tarea.completadoEn){
+                tarea.completadoEn = new Date().toISOString() //no puedo almacenar el objeto Date propiamente pero si toISOString
+            }
+        })
+
+        
+        //lógica para desmarcar una tarea como completada
+        this.listadoArr.forEach(tarea=>{
+            if(!ids.includes(tarea.id)){
+                //se puede hacer en una sola linea
+                this._listado[tarea.id].completadoEn = null
+            }
+        })
     }
 }

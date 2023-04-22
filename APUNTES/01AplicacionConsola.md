@@ -912,16 +912,16 @@ main();
                 if(completadoEn){
                     indice +=1
                     //console.log(`${indice.toString().green}- ${desc} :: ${estado}`)        
-                    console.log(`${(indice+ '.').green}- ${desc} :: ${estado}`)        
+                    console.log(`${(indice+ '.').green}- ${desc} :: ${completadoEn.green}`)        
                 }
                 
             }else{
-                if(!completadas){
+            
                     if(!completadoEn){
                         indice +=1
                         console.log(`${(indice+ '.').green}- ${desc} :: ${estado}`)        
                     }
-                }
+                
             }
          }) 
     }                                           
@@ -1082,4 +1082,82 @@ export const listadoTareasBorrar =async (tareas) =>{
 
 ## Completar tareas - Multiples selecciones
 
-- 
+- El código es muy parecido a listadoTareasBorrar Lo copio y le hago algunas modificaciones
+
+~~~js
+export const mostrarListadoChecklist =async (tareas) =>{
+
+    const choices = tareas.map((tarea, indice)=>{
+        
+        const idx = `${indice + 1 }`.green 
+        
+        
+        return{
+            value: tarea.id,
+            name: `${idx} ${tarea.desc}`,
+            checked: (tarea.completadoEn ) ? true : false //de esta manera muestra las que ya están completadas marcadas
+        }
+    })
+
+    const preguntas = [
+        {
+            type: 'checkbox', //tipo checkbox
+            name: 'ids',
+            message: 'Selecciones ',
+            choices
+        }
+    ]
+
+    const {ids} = await inquirer.prompt(preguntas)
+
+    return ids
+ }
+~~~
+----
+
+## Marcar cómo completadas o pendientes
+
+- Creo en Tareas el método para recibir el arreglo de tareas y establecerlas completadas
+
+~~~js
+    toggleCompletadas(ids= []){
+        ids.forEach(id=>{
+            const tarea = this._listado[id] //al trabajar con un objeto puedo ir directamente a la propiedad que me interesa
+            if(!tarea.completadoEn){
+                tarea.completadoEn = new Date().toISOString() //no puedo almacenar el objeto Date propiamente pero si toISOString
+            }
+        })
+    }
+~~~
+
+- En app.js
+
+~~~js
+case '5':
+    const ids = await mostrarListadoChecklist(tareas.listadoArr)
+    tareas.toggleCompletadas(ids)
+break;
+~~~
+
+- Si ahora desmarco una completada como no completada sigue apareciendo completadda porque falta la lógica
+
+~~~js
+
+    toggleCompletadas(ids= []){
+        ids.forEach(id=>{
+            const tarea = this._listado[id] //al trabajar con un objeto puedo ir directamente a la propiedad que me interesa
+            if(!tarea.completadoEn){
+                tarea.completadoEn = new Date().toISOString() //no puedo almacenar el objeto Date propiamente pero si toISOString
+            }
+        })
+
+        
+         //lógica para desmarcar una tarea como completada
+        this.listadoArr.forEach(tarea=>{
+            if(!ids.includes(tarea.id)){
+                //se puede hacer en una sola linea
+                this._listado[tarea.id].completadoEn = null
+            }
+        })
+    }
+~~~
