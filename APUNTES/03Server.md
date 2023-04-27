@@ -376,11 +376,82 @@ export default router
 
 ## Obtener datos de un POST
 
-- 
+- Selecciono JSON en el body de Thunder Client
+- Escribo un JSON válido
 
+~~~json
+{
+  "nombre": "Miguel",
+  "edad": 41,
+}
+~~~
 
+- Para recibir JSON necesito usar un middleware en el server
 
+> this.app.use(express.json())
 
+- Ahora puedo recibir JSON
+- Para captar la data uso req.body en el controlador. La extraigo con desestructuración
+- user.controller
+
+~~~js
+const addUser = (req,res) => {
+ const {nombre, edad} = req.body; 
+ res.json({
+    nombre, 
+    edad
+ })
+}
+~~~
+-----
+
+## Parámetros de segmento y query 
+
+- Uso :id para utilizar ese parámetro de segmento válido de la url
+- user.routes.js
+
+~~~js
+router.patch('/:id', userController.updateUser)
+~~~
+
+- La url sería
+
+> http://localhost:8080/api/usuarios/10          10 === /:id del router
+
+- Para obtener el parámetro viene en req.params
+- Uso desestructuración para sacar el id
+- user.controller
+
+~~~js
+const updateUser = (req,res) =>{
+    const {id} = req.params
+    res.json({
+        id    //10 
+    })
+}
+~~~
+
+- Con las query pasa algo parecido
+
+> http://localhost:8080/api/usuarios/10?q=hola&nombre=clara¬apikey=123456
+
+- Express parsea las query
+- Puedo especificar en la desestructuración las query y darles un valor en caso de que vengan vacías
+
+~~~js
+const updateUser = (req,res) =>{
+    const {id} = req.params
+    const {q, nombre="no name", apiKey} = req.query
+
+    res.json({
+        id,
+        q,
+        nombre,
+        apiKey
+    })
+}
+~~~
+----
 
 ------
 
