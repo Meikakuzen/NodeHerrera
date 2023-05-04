@@ -3,6 +3,9 @@ import userController from '../controllers/user.controller.js'
 import {check} from 'express-validator'
 import { validarCampos } from '../middlewares/validar-campos.js'
 import { esRolValido, existeMail, userExistsById } from '../helpers/db-validators.js'
+import validarJWT from '../middlewares/validar-jwt.js'
+import tieneRole from '../middlewares/validar-roles.js'
+//import esAdminRole from '../middlewares/validar-roles.js'
 
 
 const router = express.Router()
@@ -26,6 +29,9 @@ router.put('/:id',[
 router.patch('/:id', userController.usuariosPatch)
 
 router.delete('/:id', [
+    validarJWT,
+   // esAdminRole,
+   tieneRole('ADMIN_ROLE','VENTAS_ROLE','USER_ROLE'),
     check('id', 'No es un id válido').isMongoId(),
     check('id').custom(userExistsById), 
     validarCampos

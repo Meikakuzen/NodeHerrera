@@ -25,7 +25,8 @@ const usuarioSchema = mongoose.Schema({
     rol:{
         type: String,
         required: true,
-        enum: ['ADMIN_ROLE', 'USER_ROLE', 'VENTAS_ROLE'] 
+        enum: ['ADMIN_ROLE', 'USER_ROLE', 'VENTAS_ROLE'],
+        default: 'USER_ROLE' 
     },
 
     estado:{
@@ -42,6 +43,12 @@ const usuarioSchema = mongoose.Schema({
 
 usuarioSchema.methods.toJSON = function(){
     const {__v, password, ...usuario} = this.toObject() //esto me va a generar mi instancia pero con sus valores respectivos, uso la desestructuración
+    return usuario
+}
+
+usuarioSchema.methods.toJSON = function(){
+    const {_id,...usuario} = this.toObject()
+    usuario.uid = _id
     return usuario
 }
 
