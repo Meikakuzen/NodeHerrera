@@ -5,7 +5,7 @@ import dbConnection from '../database/config.js'
 import authRouter from '../routes/auth.router.js'
 import categoriaRouter from '../routes/categoria.routes.js'
 import productosRouter from '../routes/producto.router.js'
-
+import buscarRouter from '../routes/buscar.routes.js'
 export class Server {
 
     constructor(){
@@ -15,6 +15,7 @@ export class Server {
         this.authPath= '/api/auth'
         this.categoriasPath = '/api/categorias'
         this.productosPath = '/api/productos'
+        this.buscarPath = "/api/buscar"
 
         //conexion a la DB
         this.conectarDB()
@@ -43,6 +44,7 @@ export class Server {
         this.app.use(this.authPath, authRouter)
         this.app.use(this.categoriasPath, categoriaRouter )
         this.app.use(this.productosPath, productosRouter)
+        this.app.use(this.buscarPath, buscarRouter)
     }
 
     listen(){

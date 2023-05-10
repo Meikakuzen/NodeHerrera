@@ -760,9 +760,6 @@ const updateProducto =  async (req,res)=>{
 
 const deleteProducto = async (req,res)=>{
     const id = req.params.id
-
-    
-
     const productoBorrado = await Producto.findByIdAndUpdate(id, {estado: false}, {new: true} )
     
     res.json({
@@ -779,6 +776,396 @@ export default{
     deleteProducto
 }
 ~~~
+
 -----
 
 ## Ruta para realizar búsquedas
+
+- Creo el archivo de rutas buscar.routes.js y el controlador buscar.controller.js
+
+~~~js
+//routes
+import {Router} from 'express'
+import buscarController from '../controllers/buscar.controller.js'
+
+ const router = Router()
+
+ router.get('/:coleccion/:termino', buscarController.buscar)
+
+ export default router
+~~~
+- buscar.controller.js
+~~~js
+const buscar = (req,res)=>{
+       res.json({
+        msg: "buscar ok"
+    })
+}
+
+export default{
+    buscar
+}
+~~~
+
+- Añado el path y el router al server
+
+~~~js
+import express from 'express'
+import cors from 'cors'
+import userRouter from '../routes/user.routes.js'
+import dbConnection from '../database/config.js'
+import authRouter from '../routes/auth.router.js'
+import categoriaRouter from '../routes/categoria.routes.js'
+import productosRouter from '../routes/producto.router.js'
+import buscarRouter from '../routes/buscar.routes.js'
+export class Server {
+
+    constructor(){
+        this.app = express()
+        this.port = process.env.PORT
+        this.usuariosPath = '/api/usuarios'
+        this.authPath= '/api/auth'
+        this.categoriasPath = '/api/categorias'
+        this.productosPath = '/api/productos'
+        this.buscarPath = "/api/buscar"
+
+        //conexion a la DB
+        this.conectarDB()
+        
+        //Middlewares ( en el constructor van a ejecutarse al levantar el servidor )
+        this.middlewares()
+
+       //Rutas
+        this.routes()
+    }
+
+    async conectarDB(){
+        await dbConnection()
+    }
+
+    middlewares(){
+        this.app.use(express.static('public')) //Esto servirá lo que haya en la carpeta public en '/'
+        this.app.use(express.urlencoded({extended: false})) //parseo el body
+        this.app.use(express.json())
+        this.app.use(cors())
+    }
+
+    routes(){
+        
+        this.app.use(this.usuariosPath, userRouter)
+        this.app.use(this.authPath, authRouter)
+        this.app.use(this.categoriasPath, categoriaRouter )
+        this.app.use(this.productosPath, productosRouter)
+        this.app.use(this.buscarPath, buscarRouter)
+    }
+
+    listen(){
+        this.app.listen(this.port, ()=>{
+            console.log(`Server corriendo en puerto ${this.port}`)
+        })
+    }
+}
+~~~
+- Normalmente las búsquedas son get y los argumentos se pasan por el url
+----
+
+## Busquedas en base de datos
+
+- Hago un array con las colecciones permitidas y lo uso para validar
+
+
+~~~js
+const buscar = (req,res)=>{
+
+    const {coleccion, termino} = req.params
+
+    if(!coleccionesPermitidas.includes(coleccion)) return res.status(400).json({msg:"La colección no está en la DB"})
+
+    res.json({
+        msg: "buscar ok"
+    })
+}
+~~~
+
+- Hago un switch dónde coloco las tres colecciones (roles lo voy a obviar, lo voy a usar para manejar un error)
+
+~~~js
+import Usuario from "../models/usuario.js"
+import Categoria from "../models/categoria.js"
+import Producto from "../models/producto.js"
+import mongoose from "mongoose"
+
+const coleccionesPermitidas = [
+    'usuarios',
+    'categorias',
+    'productos',
+    'roles'
+]
+
+const buscarUsuarios = async(termino="", res)=>{
+    //compruebo que sea un id válido
+    const esMongoId= mongoose.isValidObjectId(termino) //TRUE
+    
+    if(esMongoId){
+        const usuario = await Usuario.findById(termino)
+        res.json({
+            usuario
+        })
+    }
+}
+
+const buscar = (req,res)=>{
+
+    //extraigo los parametros de la url
+    const {coleccion, termino} = req.params
+
+    //filtro si están een el enum
+    if(!coleccionesPermitidas.includes(coleccion)) return res.status(400).json({msg:"La colección no está en la DB"})
+
+
+    switch (coleccion) {
+        case 'usuarios':
+            buscarUsuarios(termino, res)            
+            break;
+        case 'categorias':
+
+            break;
+        case 'productos':
+
+            break;
+        default:
+            res.status(500).json({
+                msg:"Se me olvidó hacer esta búsqueda"
+            })
+            break;
+    }
+
+
+}
+
+export default{
+    buscar
+}
+~~~
+
+- En la url debo colocar la colección y un id válido de un usuario
+
+> http://localhost:8080/api/buscar/usuarios/6448fa3c5819512255909a86
+
+- Si mando un id válido pero que no existe recibo un null
+- Lo manejo con un ternario
+  
+~~~js
+const buscarUsuarios = async(termino="", res)=>{
+
+    const esMongoId= mongoose.isValidObjectId(termino) //TRUE
+    
+    if(esMongoId){
+        const usuario = await Usuario.findById(termino)
+        return res.json({
+            results : usuario ? [usuario]: []
+        })
+    }
+}
+~~~
+
+- Las demás búsquedas van a ser iguales pero quiero implementar también las búsquedas por nombre
+-----
+
+## Buscar por otros argumentos
+
+- Quiero poder buscar por nombre y por correo
+- Es key sensitive y no quiero que sea tan escrito como para tener que escribir el nombre completo en la url
+- Para ello uso una expresión regular
+- Puedo buscar por nombre o por correo
+- Debe de tener el estado en true
+
+~~~js
+import Usuario from "../models/usuario.js"
+import Categoria from "../models/categoria.js"
+import Producto from "../models/producto.js"
+import mongoose from "mongoose"
+
+const coleccionesPermitidas = [
+    'usuarios',
+    'categorias',
+    'productos',
+    'roles'
+]
+
+const buscarUsuarios = async(termino="", res)=>{
+
+    const esMongoId= mongoose.isValidObjectId(termino) //TRUE
+    
+    if(esMongoId){
+        const usuario = await Usuario.findById(termino)
+        return res.json({
+            results : usuario ? [usuario]: []
+        })
+    }
+
+    const regex = new RegExp(termino, 'i') //expresión regular, i de insensitive a minúsculas y mayúsculas
+
+    const usuarios = await Usuario.find({
+        //$or es una propiedad de mongo
+        $or: [
+            {nombre: regex},
+            {correo: regex}
+        ],
+
+        $and: [{estado:true}]
+    })
+    res.json({
+        results: usuarios
+    })
+
+}
+
+const buscar = (req,res)=>{
+
+    const {coleccion, termino} = req.params
+
+    if(!coleccionesPermitidas.includes(coleccion)) return res.status(400).json({msg:"La colección no está en la DB"})
+
+
+    switch (coleccion) {
+        case 'usuarios':
+            buscarUsuarios(termino, res)            
+            break;
+        case 'categorias':
+
+            break;
+        case 'productos':
+
+            break;
+        default:
+            res.status(500).json({
+                msg:"Se me olvidó hacer esta búsqueda"
+            })
+            break;
+    }
+
+
+}
+
+export default{
+    buscar
+}
+~~~
+
+- Podría usar Usuario.count en lugar del find en el caso de que quisiera contar cuantas respuestas hay
+- Hacer las demás búsquedas es practicamente los mismo
+------
+
+## Buscar en otras colecciones
+
+~~~js
+import Usuario from "../models/usuario.js"
+import Categoria from "../models/categoria.js"
+import Producto from "../models/producto.js"
+import mongoose from "mongoose"
+
+const coleccionesPermitidas = [
+    'usuarios',
+    'categorias',
+    'productos',
+    'roles'
+]
+
+const buscarUsuarios = async(termino="", res)=>{
+
+    const esMongoId= mongoose.isValidObjectId(termino) //TRUE
+    
+    if(esMongoId){
+        const usuario = await Usuario.findById(termino)
+        return res.json({
+            results : usuario ? [usuario]: []
+        })
+    }
+
+    const regex = new RegExp(termino, 'i') //expresión regular, i de insensitive a minúsculas y mayúsculas
+
+    const usuarios = await Usuario.find({
+        //$or es una propiedad de mongo
+        $or: [
+            {nombre: regex},
+            {correo: regex}
+        ],
+
+        $and: [{estado:true}]
+    })
+    res.json({
+        results: usuarios
+    })
+
+}
+
+const buscar = (req,res)=>{
+
+    const {coleccion, termino} = req.params
+
+    if(!coleccionesPermitidas.includes(coleccion)) return res.status(400).json({msg:"La colección no está en la DB"})
+
+
+    switch (coleccion) {
+        case 'usuarios':
+            buscarUsuarios(termino, res)            
+            break;
+        case 'categorias':
+            buscarCategorias(termino, res)
+            break;
+        case 'productos':
+            buscarProductos(termino, res)
+            break;
+        default:
+            res.status(500).json({
+                msg:"Se me olvidó hacer esta búsqueda"
+            })
+            break;
+    }
+}
+
+const buscarCategorias = async(termino="", res)=>{
+    const esMongoId= mongoose.isValidObjectId(termino) //TRUE
+    
+    if(esMongoId){
+        const categoria = await Categoria.findById(termino)
+        return res.json({
+            results : categoria ? [categoria] : []
+        })
+    }
+
+    const regex = new RegExp(termino, 'i') //expresión regular, i de insensitive a minúsculas y mayúsculas
+
+    const categorias = await Categoria.find({nombre: regex, estado: true})
+    res.json({
+        results: categorias
+    })
+
+}
+
+const buscarProductos = async(termino="", res)=>{
+    const esMongoId= mongoose.isValidObjectId(termino) //TRUE
+    
+    if(esMongoId){
+        const producto = await Producto.findById(termino)
+        return res.json({
+            results : producto ? [producto]: []
+        })
+    }
+
+    const regex = new RegExp(termino, 'i') //expresión regular, i de insensitive a minúsculas y mayúsculas
+
+    const productos = await Producto.find({nombre: regex, estado:true })
+    res.json({
+        results: productos
+    })
+
+}
+
+
+export default{
+    buscar
+}
+~~~
+
