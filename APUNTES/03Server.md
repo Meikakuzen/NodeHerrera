@@ -7,7 +7,6 @@
   - Recuerda que node ya incorpora --watch para estar escuchando los cambios 
   - Recuerda también poner type: module para usar imports y exports
 - El servidor básico es el que muestran en la documentación
-
 - app.js:
 
 ~~~js
